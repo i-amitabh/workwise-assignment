@@ -65,6 +65,18 @@ class TicketController {
     return availableSeatsPerRow;
   }
 
+  getAllSeatStatus() {
+    let responseObj = {}, index = 0;
+    this.seatMatrix.forEach((row, rowIndex) => {
+      row.forEach((_, colIndex) => {
+        index++;
+        responseObj[index] = this.isSeatBooked(colIndex, rowIndex);
+      });
+    });
+
+    return responseObj;
+  }
+
   getSeatAllotment(numberOfSeat) {
     if (numberOfSeat <= this.numberOfColumn) {
       const seatNumberArray = [];
@@ -92,6 +104,7 @@ class TicketController {
                     if (seatNumberArray.length >= numberOfSeat) {
                         break;
                     }
+                    this.bookSeat(rowIndex, colIndex);
                     seatNumberArray.push(this.getSeatNumber(rowIndex, colIndex));
                 }
             }
@@ -123,6 +136,7 @@ class TicketController {
 
         //returning the seatNumberArray
         for (let i = 0; i < numberOfSeat; i++) {
+          this.bookSeat(rowToBookTicketAt, colIndex + i);
           seatNumberArray.push(
             this.getSeatNumber(rowToBookTicketAt, colIndex + i)
           );
@@ -140,13 +154,13 @@ const ticketSystem = new TicketController();
 //   }
 // }
 
-// const testArray = [6, 7, 5, 7, 7, 7, 7, 7, 7, 7, 7, 3];
-const testArray = [4, 7, 2, 7, 7, 7, 4, 7, 7, 7, 7, 3];
-testArray.forEach((test, index) => {
-  for (let i = 0; i < test; i++) {
-    ticketSystem.bookSeat(index, i);
-  }
-});
-ticketSystem.traverse2DMatrix();
-console.log("seatArray", ticketSystem.getSeatAllotment(4));
-// ticketSystem.getSeatAllotment(1)
+// const testArray = [4, 7, 2, 7, 7, 7, 4, 7, 7, 7, 7, 3];
+// testArray.forEach((test, index) => {
+//   for (let i = 0; i < test; i++) {
+//     ticketSystem.bookSeat(index, i);
+//   }
+// });
+// ticketSystem.traverse2DMatrix();
+// console.log("seatArray", ticketSystem.getSeatAllotment(4));
+
+export default TicketController;
