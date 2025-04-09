@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import TicketController from "./ticketController.js";
+import pool from "./db.js";
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
@@ -53,7 +54,7 @@ app.get('/get-all-seats', async (req, res) => {
         return res.status(200).json({
             "success": true,
             "message": "Seat status retrieved successfully",
-            "seatStatus": JSON.stringify(allSeatAllotment)
+            "seatStatus": allSeatAllotment
         })
     }
 
@@ -73,8 +74,8 @@ app.post('/book-seats', async (req, res) => {
         return res.status(200).json({
             "success": true,
             "message": "Seat status retrieved successfully",
-            "newSeatsBooked": JSON.stringify(seatsArray),
-            "seatStatus": JSON.stringify(allSeatAllotment)
+            "newSeatsBooked": seatsArray,
+            "seatStatus": allSeatAllotment
         })
     } else {
         return res.status(400).json({
@@ -85,9 +86,21 @@ app.post('/book-seats', async (req, res) => {
 })
 
 app.get('/', async (req, res) => {
-    return res.status(200).json({
-        "message": "Working"
-    })
+    try {
+        const result = await pool.query("SELECT * FROM users;");
+        console.log(result);
+        return res.status(200).json({
+            "message": "Working",
+            "result": result.rows[0]
+        })
+    } catch(error) {
+        console.log(error);
+        return res.status(400).json({
+            "message": "not working"
+        })
+    }
+
+    // return res.send(`The database name is : ${result.rows[0].current_database}`);
 });
 
 app.listen(PORT, () => {
