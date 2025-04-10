@@ -1,13 +1,11 @@
 import jwt from 'jsonwebtoken';
 import dotenv from "dotenv";
-import pool from "./db.js";
+import pool from "../config/db.js";
 dotenv.config();
 
 const authMiddleware = async (req, res, next) => {
     // Get token from cookies
     const token = req.cookies.token;
-    // console.log('cookie', req.cookies);
-    // console.log('token', token);
   
     // Check if token exists
     if (!token) {

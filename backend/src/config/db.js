@@ -13,7 +13,7 @@ const pool = new Pool({
 })
 
 pool.on('connect', () => {
-    console.log('Connection established')
+    console.log('Connection established with Database')
 })
 
 export default pool;

@@ -1,50 +1,33 @@
-class TicketController {
-  numberOfSeat = 80;
-  numberOfColumn = 7;
+class TicketSeatController {
+  numberOfSeat;
+  numberOfColumn;
   numberOfRows;
   leftOverSeat;
 
-  // constructor() {
-  //   this.numberOfRows = Math.ceil(this.numberOfSeat / this.numberOfColumn);
-  //   // simplify this calculation
-  //   this.leftOverSeat = Math.floor(
-  //     (this.numberOfSeat / this.numberOfColumn -
-  //       Math.floor(this.numberOfSeat / this.numberOfColumn)) *
-  //       this.numberOfColumn
-  //   );
-  //   this.seatMatrix = Array(
-  //     this.numberOfRows - 1 + (this.leftOverSeat > 0 ? 1 : 0)
-  //   )
-  //     .fill()
-  //     .map((_, rowIndex) =>
-  //       Array(
-  //         rowIndex + 1 === this.numberOfRows
-  //           ? this.leftOverSeat
-  //           : this.numberOfColumn
-  //       ).fill(false)
-  //     );
-  // }
+  constructor(responseObj, numberOfAllSeat, numberOfColumn) {
+    if (!responseObj) return;
 
-  constructor(responseObj) { // Default to empty object
-    if(responseObj) {
-      this.numberOfRows = Math.ceil(this.numberOfSeat / this.numberOfColumn);
+    this.numberOfSeat = numberOfAllSeat;
+    this.numberOfColumn = numberOfColumn;
+    this.numberOfRows = Math.ceil(this.numberOfSeat / this.numberOfColumn);
     this.leftOverSeat = this.numberOfSeat % this.numberOfColumn;
-    
+
     let index = 1;
-    // console.log('responseObj inside the contructor', responseObj);
-    this.seatMatrix = Array.from({ length: this.numberOfRows }, (_, rowIndex) => {
-      const seatsInRow = rowIndex === this.numberOfRows - 1 && this.leftOverSeat > 0 
-        ? this.leftOverSeat 
-        : this.numberOfColumn;
-  
-      return Array.from({ length: seatsInRow }, () => {
-        // Safely access responseObj with fallbacks
-        const seatStatus = responseObj?.[index] ?? false;
-        index++;
-        return seatStatus === true;
-      });
-    });
-    }
+    this.seatMatrix = Array.from(
+      { length: this.numberOfRows },
+      (_, rowIndex) => {
+        const seatsInRow =
+          rowIndex === this.numberOfRows - 1 && this.leftOverSeat > 0
+            ? this.leftOverSeat
+            : this.numberOfColumn;
+
+        return Array.from({ length: seatsInRow }, () => {
+          const seatStatus = responseObj?.[index] ?? false;
+          index++;
+          return seatStatus === true;
+        });
+      }
+    );
   }
 
   isSeatBooked(col, row) {
@@ -88,7 +71,8 @@ class TicketController {
   }
 
   getAllSeatStatus() {
-    let responseObj = {}, index = 0;
+    let responseObj = {},
+      index = 0;
     this.seatMatrix.forEach((row, rowIndex) => {
       row.forEach((_, colIndex) => {
         index++;
@@ -102,10 +86,12 @@ class TicketController {
   getSeatAllotment(numberOfSeat) {
     if (numberOfSeat <= this.numberOfColumn) {
       const seatNumberArray = [];
-      const numberOfAvaiableSeatsPerRow = this.getNumberOfSeatsAvailablePerRow();
+      const numberOfAvaiableSeatsPerRow =
+        this.getNumberOfSeatsAvailablePerRow();
 
       // identify which row to book seats at
-      let rowToBookTicketAt, numberOfAllSeat = 0;
+      let rowToBookTicketAt,
+        numberOfAllSeat = 0;
       for (let i = 0; i < numberOfAvaiableSeatsPerRow.length; i++) {
         numberOfAllSeat += numberOfAvaiableSeatsPerRow[i];
         if (numberOfAvaiableSeatsPerRow[i] >= numberOfSeat) {
@@ -115,25 +101,25 @@ class TicketController {
       }
 
       // if the number of seat is less then total number of seat, return undefine
-      if(numberOfSeat > numberOfAllSeat) return undefined;
+      if (numberOfSeat > numberOfAllSeat) return undefined;
 
       if (rowToBookTicketAt === undefined) {
         // this is the case when you can't make everyone seat in a single row
         for (let rowIndex = 0; rowIndex < this.seatMatrix.length; rowIndex++) {
-            const row = this.seatMatrix[rowIndex];
-            for (let colIndex = 0; colIndex < row.length; colIndex++) {
-                if (row[colIndex] === false) {
-                    if (seatNumberArray.length >= numberOfSeat) {
-                        break;
-                    }
-                    this.bookSeat(rowIndex, colIndex);
-                    seatNumberArray.push(this.getSeatNumber(rowIndex, colIndex));
-                }
-            }
-            // Exit outer loop if the required number of seats is reached
-            if (seatNumberArray.length >= numberOfSeat) {
+          const row = this.seatMatrix[rowIndex];
+          for (let colIndex = 0; colIndex < row.length; colIndex++) {
+            if (row[colIndex] === false) {
+              if (seatNumberArray.length >= numberOfSeat) {
                 break;
+              }
+              this.bookSeat(rowIndex, colIndex);
+              seatNumberArray.push(this.getSeatNumber(rowIndex, colIndex));
             }
+          }
+          // Exit outer loop if the required number of seats is reached
+          if (seatNumberArray.length >= numberOfSeat) {
+            break;
+          }
         }
 
         return seatNumberArray;
@@ -169,12 +155,8 @@ class TicketController {
   }
 }
 
-// const ticketSystem = new TicketController();
-// for (let i = 0; i < 12; i++) {
-//   for (let j = 0; j <= 7; j++) {
-//     ticketSystem.bookSeat(i, j);
-//   }
-// }
+
+// for testing purpose
 
 // const testArray = [4, 7, 2, 7, 7, 7, 4, 7, 7, 7, 7, 3];
 // testArray.forEach((test, index) => {
@@ -185,4 +167,4 @@ class TicketController {
 // ticketSystem.traverse2DMatrix();
 // console.log("seatArray", ticketSystem.getSeatAllotment(4));
 
-export default TicketController;
+export default TicketSeatController;
