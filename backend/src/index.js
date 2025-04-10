@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import TicketController from "./ticketController.js";
 import pool from "./db.js";
+import setupDatabase from "./setupDatabase.js";
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
@@ -17,6 +18,8 @@ const ticket = new TicketController();
 // api endpoints
 
 // sign up - req name, email, password
+
+setupDatabase();
 
 app.post('/signup', async(req, res) => {
 
