@@ -4,39 +4,52 @@ import pool from "./db.js";
 dotenv.config();
 
 const authMiddleware = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  // Check if header exists and is in correct format
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Authentication invalid' });
-  }
-
-  // Extract token
-  const token = authHeader.split(' ')[1];
-
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const response = await pool.query('SELECT * FROM users WHERE name = $1', [decoded.name]);
-    console.log(response.rows[0]);
-    
-    // Attach user data to request object
-    req.user = {
-      name: decoded.name
-    };
-    
-    next();
-  } catch (error) {
-    // Handle specific errors
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Token expired' });
+    // Get token from cookies
+    const token = req.cookies.token;
+    console.log('cookie', req.cookies);
+    console.log('token', token);
+  
+    // Check if token exists
+    if (!token) {
+      return res.status(401).json({ message: 'Authentication required' });
     }
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ message: 'Invalid token' });
+  
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  
+      // Verify user exists in database
+      const response = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.userId]);
+      
+      if(response.rows.length > 0) {
+          // Attach user data to request object
+          console.log(decoded);
+          req.user = {
+              id: decoded.userId,
+              // Add other relevant user data if needed
+              // email: decoded.email,
+              // role: decoded.role
+          };
+          next();
+      } else {
+          // Clear invalid token cookie
+          res.clearCookie('token');
+          return res.status(401).json({ message: 'User no longer exists' });
+      }
+      
+    } catch (error) {
+      // Clear invalid token cookie on error
+      res.clearCookie('token');
+  
+      // Handle specific errors
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Session expired' });
+      }
+      if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ message: 'Invalid session' });
+      }
+      res.status(500).json({ message: 'Server error' });
     }
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+  };
 
 export default authMiddleware;

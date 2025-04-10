@@ -5,7 +5,9 @@ import TicketController from "./ticketController.js";
 import pool from "./db.js";
 import setupDatabase from "./setupDatabase.js";
 import authMiddleware from "./middleware.js";
-import bcrypt from 'bcrypt';``
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
@@ -14,6 +16,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
 
 const ticket = new TicketController();
 
@@ -33,7 +36,7 @@ app.post('/sign-up', async (req, res) => {
             [email]
         );
         if (userCheck.rows.length > 0) {
-            return res.status(409).json({ message: "User already exists" });
+            return res.status(409).json({ success: false, message: "User already exists" });
         }
     } catch (error) {
         console.error("Database error during user check:", error);
@@ -42,16 +45,46 @@ app.post('/sign-up', async (req, res) => {
 
     // Hash password and create user
     try {
-        const hashedPassword = await bcrypt.hash(password, 10); // Salt rounds: 10
-        await pool.query(
-            'INSERT INTO users (name, email, password) VALUES ($1, $2, $3)',
+        // Hash password and create user
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await pool.query(
+            `INSERT INTO users (name, email, password) 
+             VALUES ($1, $2, $3)
+             RETURNING id, email`, // Return essential user data
             [name, email, hashedPassword]
         );
-        return res.status(201).json({ message: "User created successfully" });
+
+        // Generate JWT
+        const user = newUser.rows[0];
+        const token = jwt.sign(
+            { userId: user.id },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' } // Token expiration
+        );
+
+        res.cookie('token', token, {
+            httpOnly: true,          // Prevent XSS attacks
+            // secure: process.env.NODE_ENV === 'production', // HTTPS only
+            sameSite: 'strict',       // Prevent CSRF attacks
+            maxAge: 3600 * 1000,      // 1 hour (matches JWT expiration)
+            path: '/'                 // Available across all routes
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Signed in successfully"
+        });
+
+        // return res.status(201).json({
+        //     success: true,
+        //     message: "User created successfully",
+        //     token: token,
+        //     userId: user.id
+        // });
+
     } catch (error) {
         console.error("Database error during user creation:", error);
         
-        // Handle unique constraint violation (if concurrent request)
         if (error.code === '23505') {
             return res.status(409).json({ message: "User already exists" });
         }
@@ -72,7 +105,6 @@ app.post('/sign-in', async (req, res) => {
         );
 
         if (userCheck.rows.length === 0) {
-            // Avoid revealing if the user exists for security
             return res.status(401).json({
                 success: false,
                 message: "Invalid credentials"
@@ -81,13 +113,30 @@ app.post('/sign-in', async (req, res) => {
 
         const user = userCheck.rows[0];
         
-        // Compare plaintext password with stored hash
+        // Compare password with stored hash
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (isPasswordValid) {
+            // Generate JWT token
+            const token = jwt.sign(
+                {
+                    userId: user.id, // Add if you have roles
+                },
+                process.env.JWT_SECRET,
+                { expiresIn: '1h' } // Token expiration
+            );
+
+            res.cookie('token', token, {
+                httpOnly: true,          // Prevent XSS attacks
+                // secure: process.env.NODE_ENV === 'production', // HTTPS only
+                sameSite: 'strict',       // Prevent CSRF attacks
+                maxAge: 3600 * 1000,      // 1 hour (matches JWT expiration)
+                path: '/'                 // Available across all routes
+            });
+    
             return res.status(200).json({
                 success: true,
-                message: "User signed in successfully"
+                message: "Signed in successfully"
             });
         } else {
             return res.status(401).json({
@@ -97,7 +146,10 @@ app.post('/sign-in', async (req, res) => {
         }
     } catch (error) {
         console.error("Sign-in error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ 
+            success: false,
+            message: "Internal server error" 
+        });
     }
 });
 
@@ -106,21 +158,56 @@ app.use(authMiddleware);
 
 // get all booked seats - 
 
+app.get('/sign-out', (req, res) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+        // secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+    });
+    res.json({ success: true, message: "Signed out successfully" });
+});
+
+function convertStringToObject(input) {
+    // Remove parentheses and whitespace, then split into parts
+    if(typeof input === 'string') {
+        const [key, value] = input.replace(/[()\s]/g, '').split(',');
+  
+        // Convert to object with integer key and boolean value
+        return {
+          [parseInt(key)]: value.toLowerCase() === 't'
+        };
+    }
+}
+
+function returnResponseObj(input) {
+    let responseObj = {};
+    input.rows.forEach((obj) => {
+        responseObj = { ...responseObj, ...convertStringToObject(obj.row) };
+    });
+
+    return responseObj;
+}
+
 app.get('/get-all-seats', async (req, res) => {
 
-    const allSeatAllotment = ticket.getAllSeatStatus();
+    // const allSeatAllotment = ticket.getAllSeatStatus();
 
-    if(allSeatAllotment) {
+    const response = await pool.query('SELECT (seat_id, status) FROM seats ORDER BY seat_id;');
+    let responseObj = returnResponseObj(response);
+
+    if(responseObj) {
         return res.status(200).json({
             "success": true,
             "message": "Seat status retrieved successfully",
-            "seatStatus": allSeatAllotment
+            "seatStatus": responseObj
+        })
+    } else {
+        return res.status(500).json({
+            "success": false,
+            "message": "Something went wrong"
         })
     }
-
-    return res.status(200).json({
-        "numberOfSeatsAvaiable": "80"
-    })
 })
 
 // post booked seats - req numberOfSeats

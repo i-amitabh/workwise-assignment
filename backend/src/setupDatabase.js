@@ -24,12 +24,12 @@ const setupDatabase = async () => {
     console.log("Created seats table");
 
     // Populate seats with 80 rows (status = false)
-    await pool.query(`
-        INSERT INTO seats (status)
-        SELECT false
-        FROM generate_series(1, 80);
-      `);
-    console.log("Populated seats table with 80 rows");
+    // await pool.query(`
+    //     INSERT INTO seats (status)
+    //     SELECT false
+    //     FROM generate_series(1, 80);
+    //   `);
+    // console.log("Populated seats table with 80 rows");
   } catch (err) {
     console.error("Error during database setup:", err.message);
   }
