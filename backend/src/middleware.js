@@ -6,8 +6,8 @@ dotenv.config();
 const authMiddleware = async (req, res, next) => {
     // Get token from cookies
     const token = req.cookies.token;
-    console.log('cookie', req.cookies);
-    console.log('token', token);
+    // console.log('cookie', req.cookies);
+    // console.log('token', token);
   
     // Check if token exists
     if (!token) {
@@ -23,7 +23,6 @@ const authMiddleware = async (req, res, next) => {
       
       if(response.rows.length > 0) {
           // Attach user data to request object
-          console.log(decoded);
           req.user = {
               id: decoded.userId,
               // Add other relevant user data if needed

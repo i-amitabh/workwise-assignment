@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 
-const ticket = new TicketController();
+// const ticket = new TicketController();
 
 // api endpoints
 
@@ -208,27 +208,60 @@ app.get('/get-all-seats', async (req, res) => {
             "message": "Something went wrong"
         })
     }
+});
+
+app.get('/reset-all-seats', async (req, res) => {
+    try {
+        await pool.query(`UPDATE seats SET status = false;`);
+        await pool.query(`UPDATE seats SET user_id = NULL`);
+
+        return res.status(200).json({
+            "success": true,
+            "message": "Reset every seats successfully"
+        })
+    } catch {
+        return res.status(500).json({
+            "success": false,
+            "message": "Something went wrong while reseting the seats"
+        })
+    }
 })
 
 // post booked seats - req numberOfSeats
 app.post('/book-seats', async (req, res) => {
     const { numberOfSeats } = req.body;
 
-    const seatsArray = ticket.getSeatAllotment(parseInt(numberOfSeats));
-    const allSeatAllotment = ticket.getAllSeatStatus();
+    const { id } = req.user;
 
-    if(seatsArray) {
+    if(numberOfSeats) {
+        const currentSeatResponse = await pool.query('SELECT (seat_id, status) FROM seats ORDER BY seat_id;');
+        let responseObj = returnResponseObj(currentSeatResponse);
+
+        const ticket = new TicketController(responseObj);
+        const seatsArray = ticket.getSeatAllotment(parseInt(numberOfSeats));
+
+        const placeholders = seatsArray.map((_, i) => `$${i + 2}`).join(',');
+
+        await pool.query(`
+        UPDATE seats 
+        SET 
+            status = TRUE, 
+            user_id = $1 
+        WHERE 
+            seat_id IN (${placeholders})
+        `, [id, ...seatsArray]);
+
+        const updateSeatResponse = await pool.query('SELECT (seat_id, status) FROM seats ORDER BY seat_id;');
+        let parsedUpdateSeatResponse = returnResponseObj(updateSeatResponse);
+
         return res.status(200).json({
             "success": true,
-            "message": "Seat status retrieved successfully",
-            "newSeatsBooked": seatsArray,
-            "seatStatus": allSeatAllotment
+            "message": "Booked seats successfully",
+            "currentBookedSeat": seatsArray,
+            "seatStatus": parsedUpdateSeatResponse,
         })
     } else {
-        return res.status(400).json({
-            "success": false,
-            "errorMessage": "No data found"
-        })
+
     }
 })
 

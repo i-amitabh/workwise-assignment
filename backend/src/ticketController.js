@@ -4,25 +4,47 @@ class TicketController {
   numberOfRows;
   leftOverSeat;
 
-  constructor() {
-    this.numberOfRows = Math.ceil(this.numberOfSeat / this.numberOfColumn);
-    // simplify this calculation
-    this.leftOverSeat = Math.floor(
-      (this.numberOfSeat / this.numberOfColumn -
-        Math.floor(this.numberOfSeat / this.numberOfColumn)) *
-        this.numberOfColumn
-    );
-    this.seatMatrix = Array(
-      this.numberOfRows - 1 + (this.leftOverSeat > 0 ? 1 : 0)
-    )
-      .fill()
-      .map((_, rowIndex) =>
-        Array(
-          rowIndex + 1 === this.numberOfRows
-            ? this.leftOverSeat
-            : this.numberOfColumn
-        ).fill(false)
-      );
+  // constructor() {
+  //   this.numberOfRows = Math.ceil(this.numberOfSeat / this.numberOfColumn);
+  //   // simplify this calculation
+  //   this.leftOverSeat = Math.floor(
+  //     (this.numberOfSeat / this.numberOfColumn -
+  //       Math.floor(this.numberOfSeat / this.numberOfColumn)) *
+  //       this.numberOfColumn
+  //   );
+  //   this.seatMatrix = Array(
+  //     this.numberOfRows - 1 + (this.leftOverSeat > 0 ? 1 : 0)
+  //   )
+  //     .fill()
+  //     .map((_, rowIndex) =>
+  //       Array(
+  //         rowIndex + 1 === this.numberOfRows
+  //           ? this.leftOverSeat
+  //           : this.numberOfColumn
+  //       ).fill(false)
+  //     );
+  // }
+
+  constructor(responseObj) { // Default to empty object
+    if(responseObj) {
+      this.numberOfRows = Math.ceil(this.numberOfSeat / this.numberOfColumn);
+    this.leftOverSeat = this.numberOfSeat % this.numberOfColumn;
+    
+    let index = 1;
+    // console.log('responseObj inside the contructor', responseObj);
+    this.seatMatrix = Array.from({ length: this.numberOfRows }, (_, rowIndex) => {
+      const seatsInRow = rowIndex === this.numberOfRows - 1 && this.leftOverSeat > 0 
+        ? this.leftOverSeat 
+        : this.numberOfColumn;
+  
+      return Array.from({ length: seatsInRow }, () => {
+        // Safely access responseObj with fallbacks
+        const seatStatus = responseObj?.[index] ?? false;
+        index++;
+        return seatStatus === true;
+      });
+    });
+    }
   }
 
   isSeatBooked(col, row) {
@@ -147,7 +169,7 @@ class TicketController {
   }
 }
 
-const ticketSystem = new TicketController();
+// const ticketSystem = new TicketController();
 // for (let i = 0; i < 12; i++) {
 //   for (let j = 0; j <= 7; j++) {
 //     ticketSystem.bookSeat(i, j);
