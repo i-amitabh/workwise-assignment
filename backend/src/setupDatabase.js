@@ -6,10 +6,10 @@ const setupDatabase = async () => {
     await pool.query(`
         CREATE TABLE IF NOT EXISTS users (
           id SERIAL PRIMARY KEY,
-          name VARCHAR(150) NOT NULL,
-          email VARCHAR(50) UNIQUE NOT NULL,
-          password VARCHAR(50) NOT NULL
-        );
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) UNIQUE NOT NULL,
+          password TEXT NOT NULL
+    );
       `);
     console.log("Created users table");
 

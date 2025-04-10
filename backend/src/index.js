@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import TicketController from "./ticketController.js";
 import pool from "./db.js";
 import setupDatabase from "./setupDatabase.js";
+import authMiddleware from "./middleware.js";
+import bcrypt from 'bcrypt';``
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
@@ -21,31 +23,86 @@ const ticket = new TicketController();
 
 setupDatabase();
 
-app.post('/signup', async(req, res) => {
-
+app.post('/sign-up', async (req, res) => {
     const { name, email, password } = req.body;
 
-    // Here make the postgres query
+    // Check if user already exists
+    try {
+        const userCheck = await pool.query(
+            'SELECT * FROM users WHERE email = $1',
+            [email]
+        );
+        if (userCheck.rows.length > 0) {
+            return res.status(409).json({ message: "User already exists" });
+        }
+    } catch (error) {
+        console.error("Database error during user check:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
 
-    return res.status(200).json({
-        name,
-        email,
-        password
-    })
-})
+    // Hash password and create user
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10); // Salt rounds: 10
+        await pool.query(
+            'INSERT INTO users (name, email, password) VALUES ($1, $2, $3)',
+            [name, email, hashedPassword]
+        );
+        return res.status(201).json({ message: "User created successfully" });
+    } catch (error) {
+        console.error("Database error during user creation:", error);
+        
+        // Handle unique constraint violation (if concurrent request)
+        if (error.code === '23505') {
+            return res.status(409).json({ message: "User already exists" });
+        }
+        return res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 
 // sign in - req email, password
-
-app.post('/signin', async (req, res) => {
+app.post('/sign-in', async (req, res) => {
     const { email, password } = req.body;
 
-    // Here make the postgres query
+    try {
+        // Check if user exists
+        const userCheck = await pool.query(
+            'SELECT * FROM users WHERE email = $1',
+            [email]
+        );
 
-    return res.status(200).json({
-        email,
-        password
-    })
-})
+        if (userCheck.rows.length === 0) {
+            // Avoid revealing if the user exists for security
+            return res.status(401).json({
+                success: false,
+                message: "Invalid credentials"
+            });
+        }
+
+        const user = userCheck.rows[0];
+        
+        // Compare plaintext password with stored hash
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (isPasswordValid) {
+            return res.status(200).json({
+                success: true,
+                message: "User signed in successfully"
+            });
+        } else {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid credentials"
+            });
+        }
+    } catch (error) {
+        console.error("Sign-in error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// authenication middleware
+app.use(authMiddleware);
 
 // get all booked seats - 
 
