@@ -16,7 +16,10 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_ORIGIN,
+  credentials: true
+}));
 app.use(cookieParser());
 
 // creats and populate table
@@ -90,6 +93,7 @@ app.post("/sign-up", async (req, res) => {
     // secure: process.env.NODE_ENV === 'production',
     sameSite: "strict",
     maxAge: 3600 * 1000, // 1 hour
+    sameSite: 'lax',
     path: "/", // all routes
   });
 
