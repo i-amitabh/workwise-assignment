@@ -56,20 +56,19 @@ export default function Home() {
   }
 
   return (
-<div className="relative h-screen w-screen flex justify-center items-center px-4">
-  <div className='absolute top-5 right-4 sm:right-5'>
+<div className="container">
+  <div className='login-button'>
     <MajorButton 
       onClick={handleSwitch} 
-      text={isSignUp ? "Log In" : "Sign Up"} 
-      className="text-sm sm:text-base"
+      text={isSignUp ? "Log In" : "Sign Up"}
     />
   </div>
   
-  <div className="w-full max-w-md md:w-[30%] bg-[rgba(255,255,255,0.05)] shadow-glass backdrop-filter backdrop-blur-[20px] rounded-lg border border-white/20 p-4 sm:p-6">
-    <form className="space-y-4">
+  <div className="glass-box">
+    <form className='form-wrapper'>
       {isSignUp && (
-        <div className="space-y-2">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-600">
+        <div className="input-wrapper">
+          <label htmlFor="name" className="input-label">
             Name
           </label>
           <input
@@ -78,7 +77,7 @@ export default function Home() {
             type="text"
             autoComplete="name"
             onChange={(e) => handleChange(e, 'name')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-transparent"
+            className="input-container"
             placeholder="Enter your name"
             required
             aria-required="true"
@@ -86,8 +85,8 @@ export default function Home() {
         </div>
       )}
 
-      <div className="space-y-2">
-        <label htmlFor="email" className="block text-sm font-medium text-gray-600">
+      <div className="input-wrapper">
+        <label htmlFor="email" className="input-label">
           Email
         </label>
         <input
@@ -96,15 +95,15 @@ export default function Home() {
           type="email"
           autoComplete="email"
           onChange={(e) => handleChange(e, 'email')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-transparent"
+          className="input-container"
           placeholder="Enter your email"
           required
           aria-required="true"
         />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="password" className="block text-sm font-medium text-gray-600">
+      <div className="input-wrapper">
+        <label htmlFor="password" className="input-label">
           Password
         </label>
         <input
@@ -113,7 +112,7 @@ export default function Home() {
           type="password"
           autoComplete={isSignUp ? "new-password" : "current-password"}
           onChange={(e) => handleChange(e, 'password')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-transparent"
+          className="input-container"
           placeholder="••••••••"
           minLength="6"
           required
@@ -122,16 +121,15 @@ export default function Home() {
       </div>
 
       {errorMessage && (
-        <p className="mt-2 text-sm text-red-500" role="alert">
+        <p className="error-text" role="alert">
           {errorMessage}
         </p>
       )}
 
-      <div className="flex mt-6 w-full justify-center">
+      <div className="auth-container">
         <MajorButton
           onClick={handleSubmit}
           text={isSignUp ? 'Sign Up' : 'Log In'}
-          className="w-full max-w-xs px-4 py-2 text-sm sm:text-base"
         />
       </div>
     </form>

@@ -3,12 +3,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { protectedClient } from "../apiClient";
 import { MajorButton } from "@/components/button";
+import { Blocks } from "react-loader-spinner";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Home() {
   const [seats, setSeats] = useState([]);
   const [numberOfSeats, setNumberOfSeats] = useState();
   const [currentBookedSeat, setCurrentBookedSeat] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const GET_ALL_SEAT_API_ENDPOINT = `${process.env.NEXT_PUBLIC_API_ENDPOINT}/get-all-seats`;
@@ -21,6 +24,10 @@ export default function Home() {
         const response = await protectedClient(GET_ALL_SEAT_API_ENDPOINT, {
           method: "GET",
         });
+
+        if (response.success) {
+          setIsLoading(false);
+        }
 
         if (response.seatStatus) {
           setSeats(Object.values(response.seatStatus));
@@ -74,6 +81,7 @@ export default function Home() {
       }
 
       if (response.success) {
+        toast.success("Seat Booked successfully!");
         if (response.seatStatus) {
           setSeats(Object.values(response.seatStatus));
         }
@@ -95,6 +103,7 @@ export default function Home() {
       });
       setCurrentBookedSeat([]);
       if (response.seatStatus) {
+        toast.success("Reset Seat successfully!");
         setSeats(Object.values(response.seatStatus));
       }
     } catch (e) {
@@ -103,76 +112,105 @@ export default function Home() {
   };
 
   const handleLogOut = () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem("authToken");
     router.push("/");
-  }
+  };
 
   return (
-    <div className="w-screen h-screen relative flex">
-        <div className='top-4 right-6 absolute'>
-            <MajorButton onClick={handleLogOut} text='Log Out' />
-        </div>
-      <div className="w-[49%] h-screen flex items-center justify-center">
-        <div className="p-10 grid grid-cols-7">
-          {seats &&
-            seats.map((seats, index) => {
-              if (seats) {
-                return (
-                  <div
-                    key={index}
-                    className="m-1 flex justify-center items-center rounded-md w-10 h-10 bg-red-500"
-                  >
-                    {index + 1}
-                  </div>
-                );
-              } else {
-                return (
-                  <div
-                    key={index}
-                    className="m-1 flex justify-center items-center rounded-md w-10 h-10 bg-green-500"
-                  >
-                    {index + 1}
-                  </div>
-                );
-              }
-            })}
-        </div>
+    <div className="container">
+      <div className="login-button">
+        <MajorButton onClick={handleLogOut} text="Log Out" />
       </div>
-      <div className="w-[49%] flex justify-center items-center h-screen">
-        <div className="w-[50%]">
-          <div className="flex gap-2.5">
+      <div className="half-container">
+        {isLoading ? (
+          <div className="loader-container">
+            <Blocks
+              height="80"
+              width="80"
+              color="#4fa94d"
+              ariaLabel="blocks-loading"
+              wrapperStyle={{}}
+              wrapperClass="blocks-wrapper"
+              visible={true}
+            />
+          </div>
+        ) : (
+          <div className="glass-grid-box">
+            {seats &&
+              seats.map((seat, index) => (
+                <div
+                  key={index}
+                  className={seat ? "booked-seats" : "free-seats"}
+                >
+                  {index + 1}
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+      <div className="half-container">
+        <div className="inner-half-container">
+          <div className="current-booked-flex">
             {currentBookedSeat &&
               currentBookedSeat.map((seats, index) => {
                 return (
-                  <div key={index} className="bg-amber-300 rounded-md p-2 px-3 mb-2">{seats}</div>
+                  <div key={index} className="current-booked">
+                    {seats}
+                  </div>
                 );
               })}
           </div>
-          <form>
-            <div className="space-y-2">
-                <label htmlFor="numberOfSeats" className="block text-sm font-medium text-gray-600">
-                    Enter number of Seats to book:
-                </label>
-                <input
-                    id="numberOfSeats"
-                    name="numberOfSeats"
-                    type="number"
-                    autoComplete="name"
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-transparent"
-                    placeholder="Enter number of Seats to book"
-                    required
-                    aria-required="true"
-                />
+          <form className="fill-seat">
+            <div className="margin-top">
+              <label htmlFor="numberOfSeats" className="input-label">
+                Enter number of Seats to book:
+              </label>
+              <input
+                id="numberOfSeats"
+                name="numberOfSeats"
+                type="number"
+                autoComplete="name"
+                onChange={handleChange}
+                className="input-container"
+                placeholder="Enter number of Seats to book"
+                required
+                aria-required="true"
+              />
             </div>
-            {errorMessage && <p className="text-red-400 ">{errorMessage}</p>}
-            <div className='flex gap-2 mt-5'>
-                <MajorButton onClick={handleBook} text={'Book Seats'} />
-                <MajorButton onClick={handleReset} text={'Reset Seats'} />
+            {errorMessage && <p className="error-text">{errorMessage}</p>}
+            <div className="auth-container">
+              <MajorButton onClick={handleBook} text={"Book Seats"} />
+              <MajorButton onClick={handleReset} text={"Reset Seats"} />
             </div>
           </form>
         </div>
       </div>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        gutter={8}
+        containerClassName=""
+        containerStyle={{}}
+        toastOptions={{
+          // Define default options
+          className: "",
+          duration: 5000,
+          removeDelay: 1000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+
+          // Default options for specific types
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: "green",
+              secondary: "black",
+            },
+          },
+        }}
+      />
     </div>
   );
 }
