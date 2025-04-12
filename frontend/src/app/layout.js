@@ -1,5 +1,4 @@
 import "./globals.css";
-
 export const metadata = {
   title: "Ticket Booking",
   description: "Ticket Booking Application",
