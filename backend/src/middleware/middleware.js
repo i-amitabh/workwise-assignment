@@ -7,6 +7,8 @@ const authMiddleware = async (req, res, next) => {
     // Get token from cookies
     // const token = req.cookies.token;
 
+    console.log("Request Path:", req.path);
+
     const authHeader = req.headers.authorization;
 
     // Check if Authorization header exists and is in the correct format
