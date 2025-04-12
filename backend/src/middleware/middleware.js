@@ -5,7 +5,17 @@ dotenv.config();
 
 const authMiddleware = async (req, res, next) => {
     // Get token from cookies
-    const token = req.cookies.token;
+    // const token = req.cookies.token;
+
+    const authHeader = req.headers.authorization;
+
+    // Check if Authorization header exists and is in the correct format
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    // Extract token from header
+    const token = authHeader.split(' ')[1];
   
     // Check if token exists
     if (!token) {
@@ -30,13 +40,13 @@ const authMiddleware = async (req, res, next) => {
           next();
       } else {
           // Clear invalid token cookie
-          res.clearCookie('token');
+          // res.clearCookie('token');
           return res.status(401).json({ message: 'User no longer exists' });
       }
       
     } catch (error) {
       // Clear invalid token cookie on error
-      res.clearCookie('token');
+      // res.clearCookie('token');
   
       // Handle specific errors
       if (error.name === 'TokenExpiredError') {
@@ -47,6 +57,6 @@ const authMiddleware = async (req, res, next) => {
       }
       res.status(500).json({ message: 'Server error' });
     }
-  };
+};
 
 export default authMiddleware;

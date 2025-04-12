@@ -88,19 +88,20 @@ app.post("/sign-up", async (req, res) => {
   });
 
   // set that token to the user cookie
-  res.cookie("token", token, {
-    httpOnly: true,
-    // secure: process.env.NODE_ENV === 'production',
-    sameSite: "strict",
-    maxAge: 3600 * 1000, // 1 hour
-    sameSite: 'lax',
-    path: "/", // all routes
-  });
+  // res.cookie("token", token, {
+  //   httpOnly: true,
+  //   secure: true, // Mandatory for SameSite=None
+  //   sameSite: "none",
+  //   maxAge: 3600 * 1000, // 1 hour
+  //   sameSite: 'lax',
+  //   path: "/", // all routes
+  // });
 
   // user created successfully
   return res.status(200).json({
-    success: true,
-    message: "Signed in successfully",
+    "success": true,
+    "authToken": token,
+    "message": "Signed in successfully",
   });
 });
 
@@ -161,18 +162,19 @@ app.post("/sign-in", async (req, res) => {
   );
 
   // set that jwt token to the cookie
-  res.cookie("token", token, {
-    httpOnly: true,
-    // secure: process.env.NODE_ENV === 'production', // HTTPS only
-    sameSite: "strict",
-    maxAge: 3600 * 1000, // 1 hour
-    path: "/", // all routes
-  });
+  // res.cookie("token", token, {
+  //   httpOnly: true,
+  //   secure: true, // Mandatory for SameSite=None
+  //   sameSite: "none",
+  //   maxAge: 3600 * 1000, // 1 hour
+  //   path: "/", // all routes
+  // });
 
   // sign in sccessfully
   return res.status(200).json({
-    success: true,
-    message: "Signed in successfully",
+    "success": true,
+    "authToken": token,
+    "message": "Signed in successfully",
   });
 });
 
@@ -281,6 +283,12 @@ app.post("/book-seats", async (req, res) => {
 
   // get the seat allotment according to the algorithm
   const seatsArray = ticket.getSeatAllotment(parseInt(numberOfSeats));
+  if(!seatsArray) {
+    return res.status(400).json({
+      success: false,
+      message: `Can't allot you seats`,
+    });
+  }
   const placeholders = seatsArray.map((_, i) => `$${i + 2}`).join(",");
 
   // set the returned seats to database
