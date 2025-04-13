@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { protectedClient } from "../apiClient";
+import { protectedClient } from "../../components/apiClient";
 import { MajorButton } from "@/components/button";
 import { Blocks } from "react-loader-spinner";
 import toast, { Toaster } from "react-hot-toast";
+import { withAuthProvider } from "@/components/withAuthProvider";
 
-export default function Home() {
+function Home() {
   const [seats, setSeats] = useState([]);
   const [numberOfSeats, setNumberOfSeats] = useState();
   const [currentBookedSeat, setCurrentBookedSeat] = useState([]);
@@ -121,70 +122,73 @@ export default function Home() {
       <div className="login-button">
         <MajorButton onClick={handleLogOut} text="Log Out" />
       </div>
-      <div className="half-container">
-        {isLoading ? (
-          <div className="loader-container">
-            <Blocks
-              height="80"
-              width="80"
-              color="#4fa94d"
-              ariaLabel="blocks-loading"
-              wrapperStyle={{}}
-              wrapperClass="blocks-wrapper"
-              visible={true}
-            />
-          </div>
-        ) : (
-          <div className="glass-grid-box">
-            {seats &&
-              seats.map((seat, index) => (
-                <div
-                  key={index}
-                  className={seat ? "booked-seats" : "free-seats"}
-                >
-                  {index + 1}
-                </div>
-              ))}
-          </div>
-        )}
-      </div>
-      <div className="half-container">
-        <div className="inner-half-container">
-          <div className="current-booked-flex">
-            {currentBookedSeat &&
-              currentBookedSeat.map((seats, index) => {
-                return (
-                  <div key={index} className="current-booked">
-                    {seats}
-                  </div>
-                );
-              })}
-          </div>
-          <form className="fill-seat">
-            <div className="margin-top">
-              <label htmlFor="numberOfSeats" className="input-label">
-                Enter number of Seats to book:
-              </label>
-              <input
-                id="numberOfSeats"
-                name="numberOfSeats"
-                type="number"
-                autoComplete="name"
-                onChange={handleChange}
-                className="input-container"
-                placeholder="Enter number of Seats to book"
-                required
-                aria-required="true"
+      <div className="half-container-wrapper">
+        <div className="half-container">
+          {isLoading ? (
+            <div className="loader-container">
+              <Blocks
+                height="80"
+                width="80"
+                color="#4fa94d"
+                ariaLabel="blocks-loading"
+                wrapperStyle={{}}
+                wrapperClass="blocks-wrapper"
+                visible={true}
               />
             </div>
-            {errorMessage && <p className="error-text">{errorMessage}</p>}
-            <div className="auth-container">
-              <MajorButton onClick={handleBook} text={"Book Seats"} />
-              <MajorButton onClick={handleReset} text={"Reset Seats"} />
+          ) : (
+            <div className="glass-grid-box">
+              {seats &&
+                seats.map((seat, index) => (
+                  <div
+                    key={index}
+                    className={seat ? "booked-seats" : "free-seats"}
+                  >
+                    {index + 1}
+                  </div>
+                ))}
             </div>
-          </form>
+          )}
+        </div>
+        <div className="second-half-container">
+          <div className="inner-half-container">
+            <div className="current-booked-flex">
+              {currentBookedSeat &&
+                currentBookedSeat.map((seats, index) => {
+                  return (
+                    <div key={index} className="current-booked">
+                      {seats}
+                    </div>
+                  );
+                })}
+            </div>
+            <form className="fill-seat">
+              <div className="margin-top">
+                <label htmlFor="numberOfSeats" className="input-label">
+                  Enter number of Seats to book:
+                </label>
+                <input
+                  id="numberOfSeats"
+                  name="numberOfSeats"
+                  type="number"
+                  autoComplete="name"
+                  onChange={handleChange}
+                  className="input-container"
+                  placeholder="Enter number of Seats to book"
+                  required
+                  aria-required="true"
+                />
+              </div>
+              {errorMessage && <p className="error-text">{errorMessage}</p>}
+              <div className="auth-container">
+                <MajorButton onClick={handleBook} text={"Book Seats"} />
+                <MajorButton onClick={handleReset} text={"Reset Seats"} />
+              </div>
+            </form>
+          </div>
         </div>
       </div>
+
       <Toaster
         position="top-center"
         reverseOrder={false}
@@ -214,3 +218,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default withAuthProvider(Home);

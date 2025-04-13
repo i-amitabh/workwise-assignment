@@ -119,7 +119,7 @@ body {
 }
 
 .inner-half-container {
-  width: 50%;
+  width: 60%;
 }
 
 
@@ -166,6 +166,14 @@ body {
   justify-content: center;
 }
 
+.second-half-container {
+  width: 49%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (min-width: 640px) {
   .glass-box {
     padding: 1.5rem;
@@ -176,6 +184,85 @@ body {
   }
 }
 
+.half-container-wrapper {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.login-container {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (max-width: 400px) {
+
+  .login-container {
+    height: 100vh;
+    width: '80%';
+  }
+
+  .glass-box {
+    align-items: center;
+    margin: 50px;
+  }
+
+  .second-half-container {
+    width: 100%;
+    height: min-content;
+    margin-bottom: 50px;
+  }
+
+  .glass-grid-box {
+    margin-top: 50px;
+  }
+
+  .container {
+    height:fit-content;
+  }
+
+  .half-container-wrapper {
+    margin-top: 0px;
+    height:fit-content;
+  }
+}
+
+@media (max-width: 450px) {
+
+  .second-half-container {
+    width: 100%;
+    height: min-content;
+    margin-bottom: 50px;
+  }
+
+  .glass-grid-box {
+    margin-top: 10px;
+  }
+
+  .half-container {
+    margin-top: 70px;
+    height: min-content;
+  }
+
+  .container {
+    height:fit-content;
+  }
+
+  .half-container-wrapper {
+    height:min-content;
+  }
+}
+
 @media (min-width: 768px) {
   .glass-box {
     width: 30%;
@@ -183,7 +270,7 @@ body {
 }
 
 @media (max-width: 768px) {
-  .container {
+  .half-container-wrapper {
     flex-direction: column;
     gap: 2rem;
   }
