@@ -16,8 +16,6 @@ const createPublicClient = () => {
 
     const parsedResponse = await response.json();
 
-    localStorage.setItem("authToken", parsedResponse.authToken);
-
     return parsedResponse;
   };
 

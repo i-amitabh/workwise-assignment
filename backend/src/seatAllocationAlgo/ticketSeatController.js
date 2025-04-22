@@ -1,3 +1,7 @@
+import findIndexCombinations from "../utils/findIndexCombination.js";
+import getAbsoluteDifferences from "../utils/getAbsoluteDifference.js";
+import minimumElement from "../utils/findMinimum.js";
+
 class TicketSeatController {
   numberOfSeat;
   numberOfColumn;
@@ -34,11 +38,12 @@ class TicketSeatController {
     return this.seatMatrix[row][col];
   }
 
-  bookSeat(row, col) {
+  bookSeat(col, row) {
+    // console.log("booking seat at", row, col);
     this.seatMatrix[row][col] = true;
   }
 
-  getSeatNumber(row, col) {
+  getSeatNumber(col, row) {
     if (row === this.numberOfRows) {
       return (row - 1) * this.numberOfColumn + col + 1;
     } else {
@@ -105,22 +110,60 @@ class TicketSeatController {
 
       if (rowToBookTicketAt === undefined) {
         // this is the case when you can't make everyone seat in a single row
-        for (let rowIndex = 0; rowIndex < this.seatMatrix.length; rowIndex++) {
-          const row = this.seatMatrix[rowIndex];
-          for (let colIndex = 0; colIndex < row.length; colIndex++) {
-            if (row[colIndex] === false) {
-              if (seatNumberArray.length >= numberOfSeat) {
-                break;
-              }
-              this.bookSeat(rowIndex, colIndex);
-              seatNumberArray.push(this.getSeatNumber(rowIndex, colIndex));
+
+        // finding all possible seat combination that can be sum up to numberOfSeat
+        const possibleSeatCombination = findIndexCombinations(
+          numberOfAvaiableSeatsPerRow,
+          numberOfSeat
+        );
+
+        // finding the absolute difference between the possible seat combination, this will insure that the seat is booked are near to each other
+        const absoluteDifference = getAbsoluteDifferences(
+          possibleSeatCombination
+        );
+
+        // now we need to find the element which is nearest to the previous element means has least difference
+        const minimumIndex = minimumElement(absoluteDifference);
+
+        // now we will check that possible seat combination with the least difference
+        const rowIndex = possibleSeatCombination[minimumIndex];
+
+        // we will take the first element of the array, as from here we will start booking the seat
+        const rowNumberToStartBooking = rowIndex[0];
+        const row = this.seatMatrix[rowNumberToStartBooking];
+
+
+        for (let rowIndex = rowNumberToStartBooking; rowIndex < this.seatMatrix.length; rowIndex++) {
+          for(let colIndex = 0; colIndex < this.seatMatrix[rowIndex].length; colIndex++) {
+
+            if (this.isSeatBooked(colIndex, rowIndex) === false) {
+                this.bookSeat(colIndex, rowIndex);
+                seatNumberArray.push(this.getSeatNumber(colIndex, rowIndex));
             }
           }
-          // Exit outer loop if the required number of seats is reached
+
           if (seatNumberArray.length >= numberOfSeat) {
             break;
           }
         }
+
+        // book the seats in the remaining rows
+        // for (let rowIndex = 0; rowIndex < this.seatMatrix.length; rowIndex++) {
+        //   const row = this.seatMatrix[rowIndex];
+        //   for (let colIndex = 0; colIndex < row.length; colIndex++) {
+        //     if (row[colIndex] === false) {
+        //       if (seatNumberArray.length >= numberOfSeat) {
+        //         break;
+        //       }
+        //       this.bookSeat(rowIndex, colIndex);
+        //       seatNumberArray.push(this.getSeatNumber(rowIndex, colIndex));
+        //     }
+        //   }
+        //   // Exit outer loop if the required number of seats is reached
+        //   if (seatNumberArray.length >= numberOfSeat) {
+        //     break;
+        //   }
+        // }
 
         return seatNumberArray;
       } else {
@@ -144,9 +187,9 @@ class TicketSeatController {
 
         //returning the seatNumberArray
         for (let i = 0; i < numberOfSeat; i++) {
-          this.bookSeat(rowToBookTicketAt, colIndex + i);
+          this.bookSeat(colIndex + i, rowToBookTicketAt);
           seatNumberArray.push(
-            this.getSeatNumber(rowToBookTicketAt, colIndex + i)
+            this.getSeatNumber(colIndex + i, rowToBookTicketAt)
           );
         }
         return seatNumberArray;
@@ -155,16 +198,31 @@ class TicketSeatController {
   }
 }
 
+// Create mock response object with 80 seats
+// const testArray = [5, 7, 4, 7, 6, 5, 4, 5, 6, 7, 4];
+// const mockResponse = {};
+// for (let i = 1; i <= 80; i++) {
+//   mockResponse[i] = false;
+// }
 
-// for testing purpose
+// // for testing purpose
+// const NUMBER_OF_SEAT = 80;
+// const SEATS_PER_ROW = 7;
 
-// const testArray = [4, 7, 2, 7, 7, 7, 4, 7, 7, 7, 7, 3];
+// const ticketSystem = new TicketSeatController(
+//   mockResponse,
+//   NUMBER_OF_SEAT,
+//   SEATS_PER_ROW
+// );
 // testArray.forEach((test, index) => {
 //   for (let i = 0; i < test; i++) {
-//     ticketSystem.bookSeat(index, i);
+//     ticketSystem.bookSeat(i, index);
 //   }
 // });
 // ticketSystem.traverse2DMatrix();
-// console.log("seatArray", ticketSystem.getSeatAllotment(4));
+// console.log('available seats', ticketSystem.getNumberOfSeatsAvailablePerRow());
+// console.log("seatArray", ticketSystem.getSeatAllotment(6));
+// console.log('available seats', ticketSystem.getNumberOfSeatsAvailablePerRow());
+// ticketSystem.traverse2DMatrix();
 
 export default TicketSeatController;

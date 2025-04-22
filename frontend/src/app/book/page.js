@@ -40,6 +40,7 @@ function Home() {
 
         if (!response.success) {
           if (response.message === "Session expired") {
+            localStorage.removeItem("authToken");
             router.push("/");
           }
           setErrorMessage(parsedResponse.message);

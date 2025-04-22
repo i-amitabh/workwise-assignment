@@ -58,7 +58,7 @@ app.post("/sign-up", async (req, res) => {
   if (userCheck.rows.length > 0) {
     return res
       .status(409)
-      .json({ success: false, message: "User already exists" });
+      .json({ success: false, message: "User already exists, please sign in" });
   }
 
   // create hashed password

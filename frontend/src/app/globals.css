@@ -115,7 +115,8 @@ body {
 .current-booked {
   background-color: #ebc76b;
   border-radius: 0.375rem;
-  padding: 0.5rem;
+  padding-block: 0.5rem;
+  padding-inline: 0.75rem;
 }
 
 .inner-half-container {

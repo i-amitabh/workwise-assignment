@@ -25,43 +25,43 @@ export default function Home() {
     ? `${process.env.NEXT_PUBLIC_API_ENDPOINT}/sign-up`
     : `${process.env.NEXT_PUBLIC_API_ENDPOINT}/sign-in`;
 
-    const handleChange = (e, field) => {
-      const value = e.target.value;
-      setErrorMessage("");
-    
-      if (field === "name") {
-        setName(value);
-        if (value.trim() === "") {
-          setErrorMessage("Name is required.");
-        } else if (!/^[A-Za-z\s\-']+$/.test(value)) {
-          setErrorMessage("Name can only contain letters, spaces, hyphens, and apostrophes.");
-        }
-      } else if (field === "email") {
-        setEmail(value);
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value)) {
-          setErrorMessage("Please enter a valid email address.");
-        }
-      } else if (field === "password") {
-        setPassword(value);
-        const minLength = 8;
-        const hasUpperCase = /[A-Z]/.test(value);
-        const hasNumber = /\d/.test(value);
-        
-        let error = "";
-        if (value.length < minLength) {
-          error = "Password must be at least 8 characters long.";
-        } else if (!hasUpperCase) {
-          error = "Password must contain at least one uppercase letter.";
-        } else if (!hasNumber) {
-          error = "Password must contain at least one number.";
-        }
-        
-        if (error) {
-          setErrorMessage(error);
-        }
+  const handleChange = (e, field) => {
+    const value = e.target.value;
+    setErrorMessage("");
+  
+    if (field === "name") {
+      setName(value);
+      if (value.trim() === "") {
+        setErrorMessage("Name is required.");
+      } else if (!/^[A-Za-z\s\-']+$/.test(value)) {
+        setErrorMessage("Name can only contain letters, spaces, hyphens, and apostrophes.");
       }
-    };
+    } else if (field === "email") {
+      setEmail(value);
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        setErrorMessage("Please enter a valid email address.");
+      }
+    } else if (field === "password") {
+      setPassword(value);
+      const minLength = 8;
+      const hasUpperCase = /[A-Z]/.test(value);
+      const hasNumber = /\d/.test(value);
+      
+      let error = "";
+      if (value.length < minLength) {
+        error = "Password must be at least 8 characters long.";
+      } else if (!hasUpperCase) {
+        error = "Password must contain at least one uppercase letter.";
+      } else if (!hasNumber) {
+        error = "Password must contain at least one number.";
+      }
+      
+      if (error) {
+        setErrorMessage(error);
+      }
+    }
+  };
 
   const handleSwitch = () => {
     setIsSetUp((prev) => !prev);
@@ -80,7 +80,8 @@ export default function Home() {
         body: requestBody,
       });
 
-      if (response.success) {
+      if (response.success && response.authToken) {
+        localStorage.setItem("authToken", response.authToken);
         router.push("/book");
       } else {
         setErrorMessage(response.message);
